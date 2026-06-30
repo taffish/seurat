@@ -1,6 +1,6 @@
-seurat 5.5.0-r1
+seurat 5.5.1-r1
 
-TAFFISH wrapper for Seurat 5.5.0, the Satija Lab R toolkit for single-cell
+TAFFISH wrapper for Seurat 5.5.1, the Satija Lab R toolkit for single-cell
 analysis. This app provides a general Seurat R runtime. It is not the future
 TAFFISH scrnaseq-r flow-facing helper toolkit.
 
@@ -39,20 +39,21 @@ Examples:
 
 Included runtime:
   R 4.5.2
-  Seurat 5.5.0
+  Seurat 5.5.1
   SeuratObject 5.4.0
   Matrix, ggplot2, patchwork, future, sctransform, uwot, RANN, RcppAnnoy,
   RcppHNSW, RSpectra, hdf5r, BPCells, glmGamPoi, MAST,
-  SingleCellExperiment, harmony, leidenbase, and their dependencies.
+  SingleCellExperiment, harmony, leidenbase, SeuratData, and their
+  dependencies.
 
-  The image copies the official Satija Lab Seurat 5.5.0 R package library into
+  The image copies the official Satija Lab Seurat 5.5.1 R package library into
   a smaller rocker/r-ver 4.5.2 command-line runtime. It does not include
   RStudio Server.
 
 Not included in r1:
   Signac
   Azimuth
-  SeuratData
+  SeuratData datasets
   Cell Ranger
   genome references
   prebuilt reference atlases
@@ -75,9 +76,11 @@ Boundaries:
   TAFFISH flow-facing import/qc/filter/analysis/marker helper commands; those
   belong in a future taf-scrnaseq-r app.
 
-  It does not download references, atlases, models, SeuratData datasets, or
-  Azimuth references during normal use or smoke. It does not replace manual
-  biological interpretation.
+  SeuratData is available as an R package in the official Satija Lab 5.5.1
+  package set, but datasets are not bundled. This app does not download
+  references, atlases, models, SeuratData datasets, or Azimuth references
+  during normal use or smoke. It does not replace manual biological
+  interpretation.
 
 Citation:
   Hao et al. Dictionary learning for integrative, multimodal and scalable

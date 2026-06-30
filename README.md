@@ -1,6 +1,6 @@
 # seurat
 
-TAFFISH wrapper for [Seurat](https://satijalab.org/seurat/) 5.5.0, the Satija
+TAFFISH wrapper for [Seurat](https://satijalab.org/seurat/) 5.5.1, the Satija
 Lab R toolkit for single-cell analysis. This app provides a general Seurat R
 runtime, similar in role to `taf-scanpy` on the Python side. It is not the
 future TAFFISH `scrnaseq-r` flow-facing helper toolkit.
@@ -10,9 +10,9 @@ future TAFFISH `scrnaseq-r` flow-facing helper toolkit.
 - name: `seurat`
 - command: `taf-seurat`
 - kind: `tool`
-- TAFFISH version: `5.5.0-r1`
-- container image: `ghcr.io/taffish/seurat:5.5.0-r1`
-- upstream package source: `satijalab/seurat:5.5.0`
+- TAFFISH version: `5.5.1-r1`
+- container image: `ghcr.io/taffish/seurat:5.5.1-r1`
+- upstream package source: `satijalab/seurat:5.5.1`
 - runtime base: `rocker/r-ver:4.5.2`
 - default command: `Rscript`
 - native platform: `linux/amd64`
@@ -34,7 +34,7 @@ taf-seurat --help
 The app uses a thin TAFFISH container wrapper:
 
 ```taf
-<taf-app:container:ghcr.io/taffish/seurat:5.5.0-r1$@[docker/podman: --platform linux/amd64]>
+<taf-app:container:ghcr.io/taffish/seurat:5.5.1-r1$@[docker/podman: --platform linux/amd64]>
 Rscript ::*ARGV*::
 ```
 
@@ -57,13 +57,13 @@ taf-seurat seurat-runtime-info
 
 ## Included Runtime
 
-The image copies the official Satija Lab `satijalab/seurat:5.5.0` R package
+The image copies the official Satija Lab `satijalab/seurat:5.5.1` R package
 library into a smaller `rocker/r-ver:4.5.2` runtime image. This keeps the
 validated upstream Seurat package set but removes RStudio Server and other
 layers that are not needed for command-line TAFFISH use. The build verifies:
 
 - R 4.5.2
-- Seurat 5.5.0
+- Seurat 5.5.1
 - SeuratObject 5.4.0
 - required system libraries for all bundled site-library packages
 
@@ -71,17 +71,18 @@ layers that are not needed for command-line TAFFISH use. The build verifies:
 runtime it includes core and common packages such as `Matrix`, `ggplot2`,
 `patchwork`, `future`, `sctransform`, `uwot`, `RANN`, `RcppAnnoy`,
 `RcppHNSW`, `RSpectra`, `hdf5r`, `BPCells`, `glmGamPoi`, `MAST`,
-`SingleCellExperiment`, `harmony`, and `leidenbase`.
+`SingleCellExperiment`, `harmony`, `leidenbase`, and `SeuratData`.
 
 Some Satija/scRNA-seq ecosystem packages are not included in r1:
 
 - `Signac`
 - `Azimuth`
-- `SeuratData`
 
-Those are useful but carry separate data, modality, reference, or workflow
-expectations. They should be added later only when a dedicated app or flow needs
-them and the resource boundary is clear.
+`SeuratData` is included as an R package because it is present in the official
+Satija Lab 5.5.1 runtime copied by this image, but SeuratData datasets are not
+bundled. Installing or downloading datasets remains an explicit user action.
+Signac and Azimuth carry separate modality, reference, or workflow expectations
+and should be added later only when a dedicated app or flow needs them.
 
 ## Usage
 
@@ -166,7 +167,8 @@ Smoke tests check:
 - R, Seurat, and SeuratObject versions.
 - `seurat-runtime-info` output.
 - required core packages can be loaded.
-- known absent optional packages are reported as `MISSING`.
+- known absent optional packages are reported as `MISSING`; bundled
+  `SeuratData` is checked as a package without using external datasets.
 - a tiny synthetic Seurat workflow runs offline:
   `CreateSeuratObject`, `PercentageFeatureSet`, `NormalizeData`,
   `FindVariableFeatures`, `ScaleData`, `RunPCA`, `FindNeighbors`,

@@ -3,7 +3,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 if (any(args %in% c("-h", "--help"))) {
-  cat("seurat-runtime-info 5.5.0-r1\n")
+  cat("seurat-runtime-info 5.5.1-r1\n")
   cat("\n")
   cat("Print bundled R, Seurat, SeuratObject, and selected runtime package versions.\n")
   cat("\n")
@@ -13,7 +13,7 @@ if (any(args %in% c("-h", "--help"))) {
 }
 
 if (any(args %in% c("-v", "--version"))) {
-  cat("seurat-runtime-info 5.5.0-r1\n")
+  cat("seurat-runtime-info 5.5.1-r1\n")
   quit(status = 0)
 }
 

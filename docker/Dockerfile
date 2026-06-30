@@ -1,4 +1,4 @@
-FROM satijalab/seurat:5.5.0 AS upstream
+FROM satijalab/seurat:5.5.1 AS upstream
 
 FROM rocker/r-ver:4.5.2
 
@@ -50,11 +50,12 @@ COPY docker/seurat_smoke.R /opt/seurat/share/testdata/seurat_smoke.R
 
 RUN set -eux; \
     chmod +x /usr/local/bin/seurat-runtime-info /opt/seurat/share/testdata/seurat_smoke.R; \
-    Rscript -e 'stopifnot(as.character(getRversion()) == "4.5.2"); stopifnot(as.character(packageVersion("Seurat")) == "5.5.0"); stopifnot(as.character(packageVersion("SeuratObject")) == "5.4.0")'; \
-    Rscript -e 'pkgs <- c("Seurat","SeuratObject","Matrix","ggplot2","patchwork","future","sctransform","uwot","RANN","RcppAnnoy","RcppHNSW","RSpectra","hdf5r","BPCells","glmGamPoi","MAST","SingleCellExperiment","harmony","leidenbase"); missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)]; if (length(missing)) stop(paste("missing", paste(missing, collapse=",")))'; \
-    seurat-runtime-info --version | grep -F 'seurat-runtime-info 5.5.0-r1' >/dev/null; \
-    seurat-runtime-info | grep -F "$(printf 'Seurat\t5.5.0')" >/dev/null; \
+    Rscript -e 'stopifnot(as.character(getRversion()) == "4.5.2"); stopifnot(as.character(packageVersion("Seurat")) == "5.5.1"); stopifnot(as.character(packageVersion("SeuratObject")) == "5.4.0")'; \
+    Rscript -e 'pkgs <- c("Seurat","SeuratObject","Matrix","ggplot2","patchwork","future","sctransform","uwot","RANN","RcppAnnoy","RcppHNSW","RSpectra","hdf5r","BPCells","glmGamPoi","MAST","SingleCellExperiment","harmony","leidenbase","SeuratData"); missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)]; if (length(missing)) stop(paste("missing", paste(missing, collapse=",")))'; \
+    seurat-runtime-info --version | grep -F 'seurat-runtime-info 5.5.1-r1' >/dev/null; \
+    seurat-runtime-info | grep -F "$(printf 'Seurat\t5.5.1')" >/dev/null; \
     seurat-runtime-info | grep -F "$(printf 'SeuratObject\t5.4.0')" >/dev/null; \
+    seurat-runtime-info | grep -F "$(printf 'SeuratData\t0.2.2.9002')" >/dev/null; \
     tmp=/tmp/taf-seurat-build-smoke; \
     rm -rf "${tmp}"; \
     Rscript /opt/seurat/share/testdata/seurat_smoke.R "${tmp}"; \

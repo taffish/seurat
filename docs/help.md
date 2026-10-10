@@ -1,88 +1,90 @@
-seurat 5.5.1-r1
+seurat 5.6.0-r1
 
-TAFFISH wrapper for Seurat 5.5.1, the Satija Lab R toolkit for single-cell
-analysis. This app provides a general Seurat R runtime. It is not the future
-TAFFISH scrnaseq-r flow-facing helper toolkit.
+Purpose:
+  Run Seurat R scripts, export objects/tables/plots or standalone HTML, and
+  open live Shiny gadgets. Your script chooses the analysis; default: Rscript.
 
-TAFFISH wrapper usage:
-  taf-seurat --help
-  taf-seurat --version
+Usage:
+  taf-seurat Rscript analysis.R
+  taf-seurat -- --help
   taf-seurat -- --version
-  taf-seurat Rscript --version
-  taf-seurat Rscript analysis.R
   taf-seurat seurat-runtime-info
-
-Default command:
-  Rscript
-
-Helper commands:
-  seurat-runtime-info
-      Print bundled R, Seurat, SeuratObject, and selected runtime package
-      versions as TSV.
-
-Examples:
-  taf-seurat seurat-runtime-info
-
-  taf-seurat Rscript analysis.R
-
-  taf-seurat Rscript -e 'library(Seurat); packageVersion("Seurat")'
-
-  taf-seurat Rscript - <<'RS'
-  suppressPackageStartupMessages(library(Seurat))
-  counts <- matrix(c(1, 0, 3, 0, 2, 1, 5, 0, 0), nrow = 3)
-  rownames(counts) <- c("GeneA", "GeneB", "MT-GeneC")
-  colnames(counts) <- c("cell1", "cell2", "cell3")
-  obj <- CreateSeuratObject(counts = counts)
-  obj[["percent.mt"]] <- PercentageFeatureSet(obj, pattern = "^MT-")
-  saveRDS(obj, "tiny.seurat.rds")
-  RS
-
-Included runtime:
-  R 4.5.2
-  Seurat 5.5.1
-  SeuratObject 5.4.0
-  Matrix, ggplot2, patchwork, future, sctransform, uwot, RANN, RcppAnnoy,
-  RcppHNSW, RSpectra, hdf5r, BPCells, glmGamPoi, MAST,
-  SingleCellExperiment, harmony, leidenbase, SeuratData, and their
-  dependencies.
-
-  The image copies the official Satija Lab Seurat 5.5.1 R package library into
-  a smaller rocker/r-ver 4.5.2 command-line runtime. It does not include
-  RStudio Server.
-
-Not included in r1:
-  Signac
-  Azimuth
-  SeuratData datasets
-  Cell Ranger
-  genome references
-  prebuilt reference atlases
-  TAFFISH scrnaseq-r helper commands
-
-Platform boundary:
-  The upstream Satija Lab package source and this TAFFISH image are
-  linux/amd64. This app declares Docker and Podman --platform linux/amd64 so
-  arm64 hosts can run it through amd64 emulation. This is not native
-  linux/arm64 support.
+  Put complex R expressions in a script. For a script name with spaces:
+  taf-seurat Rscript "'analysis with spaces.R'"
 
 Inputs and outputs:
-  Seurat is an R API, not a fixed CLI. Your R script controls inputs and
-  outputs. Typical inputs include 10x matrix directories, HDF5 matrices, text
-  matrices, and RDS objects. Typical outputs include Seurat RDS objects, marker
-  tables, metadata tables, and static plots.
+  Supply local matrices, 10x MEX/HDF5, RDS or BPCells paths in your script.
+  Write RDS/TSV/PNG/PDF/HTML in a writable project directory; /tmp is temporary.
 
-Boundaries:
-  r1 preserves the general upstream Seurat runtime. It does not implement
-  TAFFISH flow-facing import/qc/filter/analysis/marker helper commands; those
-  belong in a future taf-scrnaseq-r app.
+Choose a backend:
+  TAFFISH_CONTAINER_BACKEND=docker taf-seurat Rscript analysis.R
+  TAFFISH_CONTAINER_BACKEND=podman taf-seurat Rscript analysis.R
+  TAFFISH_CONTAINER_BACKEND=apptainer taf-seurat Rscript analysis.R
+  Native platform: amd64 Linux. Docker/Podman select amd64 automatically;
+  an arm64 host needs engine-provided emulation. Apptainer needs amd64 Linux.
 
-  SeuratData is available as an R package in the official Satija Lab 5.5.1
-  package set, but datasets are not bundled. This app does not download
-  references, atlases, models, SeuratData datasets, or Azimuth references
-  during normal use or smoke. It does not replace manual biological
-  interpretation.
+Export a standalone interactive plot:
+  Save hover.R containing these R lines:
+    library(Seurat); data("pbmc_small")
+    htmlwidgets::saveWidget(HoverLocator(DimPlot(pbmc_small)), "hover.html", selfcontained = TRUE)
+  taf-seurat Rscript hover.R
+  Use any backend above; open hover.html in a browser. No service/port needed.
 
-Citation:
-  Hao et al. Dictionary learning for integrative, multimodal and scalable
-  single-cell analysis. Nature Biotechnology (2023). DOI:
-  10.1038/s41587-023-01767-y.
+Install an optional dataset once:
+  taf-seurat seurat-resource list
+  SEURAT_RESOURCES="${XDG_DATA_HOME:-$HOME/.local/share}/taffish/resources/seurat/seurat-data-20261004"
+  mkdir -p "$SEURAT_RESOURCES"
+  Choose one command; append --dry-run to preview. Downloads need network.
+  TAFFISH_CONTAINER_BACKEND=docker TAFFISH_SEURAT_RESOURCE_INSTALL_ROOT="$SEURAT_RESOURCES" taf-seurat seurat-resource install --dataset pbmc3k@3.1.4 --resource-root /resource-install
+  TAFFISH_CONTAINER_BACKEND=podman TAFFISH_SEURAT_RESOURCE_INSTALL_ROOT="$SEURAT_RESOURCES" taf-seurat seurat-resource install --dataset pbmc3k@3.1.4 --resource-root /resource-install
+  TAFFISH_CONTAINER_BACKEND=apptainer TAFFISH_SEURAT_RESOURCE_INSTALL_ROOT="$SEURAT_RESOURCES" taf-seurat seurat-resource install --dataset pbmc3k@3.1.4 --resource-root /resource-install
+  Resource host paths must use letters, digits, _, ., /, + or - only.
+
+Reuse prepared resources:
+  taf-seurat seurat-resource verify --resource-root /opt/taffish-resources/seurat
+  taf-seurat Rscript use-data.R
+  In use-data.R: library(SeuratData); pbmc <- LoadData("pbmc3k")
+  Normal Rscript enables the resource profile; --vanilla disables it.
+  Personal roots above and administrator-prepared site roots are discovered
+  read-only. Set TAFFISH_SEURAT_RESOURCE_PATH=/safe/prepared/root to override.
+  Set TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 to disable discovery.
+  Do not export TAFFISH_SEURAT_RESOURCE_INSTALL_ROOT during normal analysis.
+  Manual reuse instead of auto-discovery (choose one; root already prepared):
+  TAFFISH_CONTAINER_BACKEND=docker TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_DOCKER_RUN_ARGS="-v $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
+  TAFFISH_CONTAINER_BACKEND=podman TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_PODMAN_RUN_ARGS="-v $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
+  TAFFISH_CONTAINER_BACKEND=apptainer TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_APPTAINER_RUN_ARGS="--bind $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
+  See README for administrator-once installation and ordinary-user reuse.
+  No dataset or model is downloaded during normal startup.
+
+Open an upstream browser gadget:
+  Save gadget.R containing these R lines:
+    library(Seurat)
+    data("pbmc_small")
+    IFeaturePlot(pbmc_small, feature = "MS4A1")
+  Docker:
+    TAFFISH_CONTAINER_BACKEND=docker TAFFISH_DOCKER_RUN_ARGS='-p 127.0.0.1:8787:8787' taf-seurat seurat-gadget --script gadget.R --bind 0.0.0.0
+  Podman:
+    TAFFISH_CONTAINER_BACKEND=podman TAFFISH_PODMAN_RUN_ARGS='-p 127.0.0.1:8787:8787' taf-seurat seurat-gadget --script gadget.R --bind 0.0.0.0
+  Apptainer (amd64 Linux; no port mapping):
+    TAFFISH_CONTAINER_BACKEND=apptainer taf-seurat seurat-gadget --script gadget.R --bind 127.0.0.1 --port 8787
+  After ready, open http://127.0.0.1:8787/ and keep the terminal running.
+  Remote server: ssh -N -L 8787:127.0.0.1:8787 user@server
+  Then open the same local URL. No authentication/TLS: keep access private.
+  Stop with Ctrl-C; closing a browser tab is not a reliable stop/save action.
+  Save returned selections in your script after the gadget returns.
+  Startup prints a private temporary log path; errors include its log tail.
+
+Immediate notes:
+  Trusted R scripts only; default R uwot UMAP and Rtsne need no Python.
+  Python UMAP/densMAP, FIt-SNE, Signac and Azimuth are not bundled.
+  Resource list explains member limits. Limit CPU with Seurat setThreads(1).
+
+More help:
+  taf-seurat seurat-resource --help
+  taf-seurat seurat-gadget --help
+  https://github.com/taffish/seurat and https://satijalab.org/seurat/
+
+Wrapper options:
+  taf-seurat --help       Show this installed-wrapper help.
+  taf-seurat --version    Show TAFFISH wrapper version.
+  taf-seurat --compile    Print the generated wrapper shell.

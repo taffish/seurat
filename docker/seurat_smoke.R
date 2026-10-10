@@ -6,14 +6,22 @@ if (length(args) != 1) {
 }
 
 outdir <- args[[1]]
-dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
-dir.create(file.path(outdir, "plots"), recursive = TRUE, showWarnings = FALSE)
+if (file.exists(outdir)) {
+  stop("OUTDIR already exists; choose a new output directory", call. = FALSE)
+}
+if (!dir.create(outdir, recursive = TRUE, mode = "0700")) {
+  stop("cannot create OUTDIR", call. = FALSE)
+}
+dir.create(file.path(outdir, "plots"), mode = "0700")
 
 suppressPackageStartupMessages({
   library(Seurat)
   library(ggplot2)
   library(Matrix)
 })
+
+setThreads(1L, verbose = FALSE)
+future::plan(future::sequential)
 
 set.seed(550)
 
@@ -66,6 +74,10 @@ obj <- suppressWarnings(suppressMessages(
 ))
 
 umap <- Embeddings(obj, reduction = "umap")
+stopifnot(identical(dim(umap), c(length(cells), 2L)), all(is.finite(umap)))
+stopifnot(nrow(Embeddings(obj, reduction = "pca")) == length(cells),
+          all(is.finite(Embeddings(obj, reduction = "pca"))),
+          length(Idents(obj)) == length(cells), !anyNA(Idents(obj)))
 clusters <- data.frame(
   cell = colnames(obj),
   synthetic_group = obj$synthetic_group,
@@ -84,6 +96,8 @@ if (nrow(markers) == 0) {
 utils::write.table(markers, file.path(outdir, "markers.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
 saveRDS(obj, file.path(outdir, "seurat_smoke.rds"))
+roundtrip <- readRDS(file.path(outdir, "seurat_smoke.rds"))
+stopifnot(inherits(roundtrip, "Seurat"), identical(dim(roundtrip), dim(obj)))
 
 versions <- data.frame(
   component = c("R", "Seurat", "SeuratObject"),
@@ -103,5 +117,9 @@ ggsave(file.path(outdir, "plots", "umap.pdf"), p_umap, width = 5, height = 4)
 p_qc <- VlnPlot(obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), pt.size = 0, ncol = 3)
 ggsave(file.path(outdir, "plots", "qc_violin.png"), p_qc, width = 8, height = 3.5, dpi = 150)
 ggsave(file.path(outdir, "plots", "qc_violin.pdf"), p_qc, width = 8, height = 3.5)
+
+outputs <- c("seurat_smoke.rds", "markers.tsv", "clusters.tsv", "versions.tsv",
+             "plots/umap.png", "plots/umap.pdf", "plots/qc_violin.png", "plots/qc_violin.pdf")
+stopifnot(all(file.info(file.path(outdir, outputs))$size > 0L))
 
 cat("seurat smoke ok\n")

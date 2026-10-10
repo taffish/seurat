@@ -1,0 +1,328 @@
+Package: adiposeref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: dbd4c9f745963ecebc1c1ccb364cb379
+NeedsCompilation: no
+Description: species: human
+        system: adipose
+        ncells: 160075
+        tech: scRNA-seq and sNuc-seq
+Title: Azimuth Reference: adipose
+Date: 2022-09-15
+
+Package: bmcite.SeuratData
+Version: 0.3.0
+Depends: R (>= 2.10)
+Suggests: Seurat (>= 3.2.2)
+License: CC BY 4.0
+MD5sum: 8de6efe8939b631eef6a155abf642915
+NeedsCompilation: no
+Description: seurat: 3.2.2
+        species: human
+        system: bone marrow
+        ncells: 30672
+Title: 30k Bone Marrow Cells
+
+Package: bonemarrowref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: e10b48f2da7b41e689859724cbb9e6ca
+NeedsCompilation: no
+Description: species: human
+        system: bonemarrow
+        ncells: 297627
+        tech: 10x v2
+Title: Azimuth Reference: bonemarrow
+Date: 2022-03-28
+
+Package: cbmc.SeuratData
+Version: 3.1.4
+Suggests: Seurat (>= 3.1.4)
+License: CC BY 4.0
+MD5sum: a53fd968b5b8ea2ddbe87f3a6e3ba1de
+NeedsCompilation: no
+Description: seurat: 3.1.4
+        species: human
+        system: CBMC (cord blood)
+        ncells: 8617
+        tech: CITE-seq
+        default.dataset: raw
+        disk.datasets: processed
+Title: scRNAseq and 13-antibody sequencing of CBMCs
+Date: 2020-03-12
+
+Package: celegans.embryo.SeuratData
+Version: 0.1.0
+Suggests: Seurat (>= 3.1.2)
+License: CC BY 4.0
+MD5sum: 98fde9a4417a4077ca20900b34d62427
+NeedsCompilation: no
+Description: species: C. elegans
+        system: embryo
+        ncells: 6188
+        default.dataset: raw
+Title: 6k C. elegans embryos from Packer and Zhu et al (2019)
+
+Package: fetusref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 5100a2f4d7be89b25cf5996b52d29cc8
+NeedsCompilation: no
+Description: species: human
+        system: fetus
+        ncells: 377456
+Title: Azimuth Reference: fetus
+Date: 2022-03-28
+
+Package: hcabm40k.SeuratData
+Version: 3.0.0
+Suggests: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 7098731fe680bab93dfee540302b304e
+NeedsCompilation: no
+Description: species: human
+        system: bone marrow
+        ncells: 40000
+        tech: 10x v2
+        default.dataset: raw
+Title: 40,000 Cells From the Human Cell Atlas ICA Bone Marrow Dataset
+
+Package: heartref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 12b3a01e9a2b3725fe2233876dbbbe62
+NeedsCompilation: no
+Description: species: human
+        system: heart
+        ncells: 656509
+        tech: scRNA-seq and sNuc-seq
+Title: Azimuth Reference: heart
+Date: 2022-03-14
+
+Package: humancortexref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 16a1ca51a6d0d4a9cf16aaa4911bf176
+NeedsCompilation: no
+Description: species: human
+        system: motor cortex
+        ncells: 76533
+Title: Azimuth Reference: humancortex
+Date: 2022-03-28
+
+Package: ifnb.SeuratData
+Version: 3.1.0
+Suggests: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 416b58165f996374cbb45ab6e2e2121e
+NeedsCompilation: no
+Description: species: human
+        system: PBMC
+        ncells: 13999
+        tech: 10x v1
+        default.dataset: raw
+        other.datasets: processed
+Title: IFNB-Stimulated and Control PBMCs
+
+Package: kidneyref.SeuratData
+Version: 1.0.2
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 6b5ce7d0b1f4f97c8b9d6d3b295e959d
+NeedsCompilation: no
+Description: species: human
+        system: kidney
+        ncells: 64693
+        tech: snRNA-seq
+Title: Azimuth Reference: kidney
+Date: 2024-02-21
+
+Package: lungref.SeuratData
+Version: 2.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 2fcfc0d7d18184c44a66499cbc450f1f
+NeedsCompilation: no
+Description: species: human
+        system: lung
+        ncells: 584884
+Title: Azimuth Reference: lung
+Date: 2022-03-28
+
+Package: mousecortexref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: f8c82934994c744ee55a212811b5f1fb
+NeedsCompilation: no
+Description: species: mouse
+        system: motor cortex
+        ncells: 159738
+        tech: 10x v3
+Title: Azimuth Reference: mousecortex
+Date: 2022-03-28
+
+Package: panc8.SeuratData
+Version: 3.0.2
+Suggests: biomaRt, data.table, Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 17d53e62d4363d078a56ad8aee1d0682
+NeedsCompilation: no
+Description: species: human
+        system: Pancreatic Islets
+        ncells: 14892
+        tech: SMARTSeq2, Fluidigm C1, CelSeq, CelSeq2, inDrops
+        default.dataset: raw
+Title: Eight Pancreas Datasets Across Five Technologies
+
+Package: pancreasref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 670c0538cdf325c3a3128bc753335cf6
+NeedsCompilation: no
+Description: species: human
+        system: pancreas
+        ncells: 35289
+Title: Azimuth Reference: pancreas
+Date: 2022-03-28
+
+Package: pbmc3k.SeuratData
+Version: 3.1.4
+Suggests: Seurat (>= 3.1.4)
+License: CC BY 4.0
+MD5sum: 5fa763b229e38a44d0b6abec650b60a3
+NeedsCompilation: no
+Description: seurat: 3.1.4
+        species: human
+        system: PBMC
+        ncells: 2700
+        tech: 10x v1
+        default.dataset: raw
+        other.datasets: pbmc3k.final
+Title: 3k PBMCs from 10X Genomics
+
+Package: pbmcMultiome.SeuratData
+Version: 0.1.4
+Depends: R (>= 3.5.0)
+Imports: SeuratObject (>= 4.1.3), Signac (>= 1.6.0)
+Suggests: Seurat (>= 4.3.0), EnsDb.Hsapiens.v86 (>= 2.99.0)
+License: CC BY 4.0
+MD5sum: a7ea9c1d92a0059508e04095e085d31f
+NeedsCompilation: no
+Description: seurat: 4.1.1
+        species: human
+        system: pbmc
+        ncells: 11909
+        default.dataset: NA
+        other.datasets: pbmc.rna, pbmc.atac
+        notes: One sample with two modalities, RNA and ATAC
+Title: 10X Genomics PBMC Multiome Dataset
+Date: 2022-12-02
+
+Package: pbmcref.SeuratData
+Version: 1.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 4.0.4)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 8872be0c9737c428c3b0aef0479b4c4d
+NeedsCompilation: no
+Description: species: human
+        system: PBMC
+        ncells: 2700
+        tech: 10x v1
+Title: Azimuth Reference: pbmc
+Date: 2022-03-14
+
+Package: pbmcsca.SeuratData
+Version: 3.0.0
+Suggests: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 6eb6dad07367ea8861027200196b096c
+NeedsCompilation: no
+Description: species: human
+        system: PBMC
+        ncells: 31021
+        tech: 10x v2, 10x v3, SMARTSeq2, Seq-Well, inDrops, Drop-seq, CelSeq2
+        notes: HCA benchmark
+        default.dataset: raw
+Title: Broad Institute PBMC Systematic Comparative Analysis
+
+Package: ssHippo.SeuratData
+Version: 3.1.4
+Suggests: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 4d40fcf363a7fa17b246d16fc4cff1e2
+NeedsCompilation: no
+Description: species: mouse
+        system: hippocampus
+        tech: slideseq v2
+        default.dataset: raw
+Title: Slide-seq v2 dataset of mouse hippocampus
+Date: 2020-03-25
+
+Package: stxBrain.SeuratData
+Version: 0.1.2
+Depends: R (>= 3.5.0), Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: d1965185b53e99f539f32840a7cb31fc
+NeedsCompilation: no
+Description: species: mouse
+        system: brain
+        ncells: 12167
+        tech: visium
+        default.dataset: NA
+        other.datasets: posterior1, posterior2, anterior1, anterior2
+        notes: One sample split across four datasets as paired anterior/posterior slices
+Title: 10X Genomics Visium Mouse Brain Dataset
+
+Package: stxKidney.SeuratData
+Version: 0.1.0
+Depends: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 86a43877de9890a48f2c589c6acd164b
+NeedsCompilation: no
+Description: species: mouse
+        system: kidney
+        ncells: 1438
+        tech: visium
+        default.dataset: raw
+Title: 10X Genomics Visium Mouse Kidney Dataset
+
+Package: thp1.eccite.SeuratData
+Version: 3.1.5
+Suggests: Seurat (>= 3.0.0)
+License: CC BY 4.0
+MD5sum: 4884b7c5175a9e88dfe0d16f17965d43
+NeedsCompilation: no
+Description: species: human
+Title: ECCITE-seq THP-1
+Date: 2020-06-22
+
+Package: tonsilref.SeuratData
+Version: 2.0.0
+Depends: R (>= 3.5.0), SeuratObject (>= 5.0.0)
+Suggests: curl, desc, exdata, pkgload, rprojroot, tools, usethis
+License: CC BY 4.0
+MD5sum: 9fac1870e72a58b4d2918f7e7ab8f5a2
+NeedsCompilation: no
+Description: species: human
+        system: tonsil
+        ncells: 377963
+        tech: scRNA-seq
+Title: Azimuth Reference: tonsil
+Date: 2024-02-05

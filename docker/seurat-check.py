@@ -12,7 +12,7 @@ import tempfile
 import time
 
 
-VERSION = "5.6.0-r1"
+VERSION = "6.0.0-r1"
 MODES = ("identity", "modules", "workflow", "threading", "sct", "bpcells", "io", "static", "negative")
 DATA = Path("/opt/seurat/share/testdata")
 

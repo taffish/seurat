@@ -1,4 +1,4 @@
-seurat 5.6.0-r1
+seurat 6.0.0-r1
 
 Purpose:
   Run Seurat R scripts, export objects/tables/plots or standalone HTML, and
@@ -13,15 +13,17 @@ Usage:
   taf-seurat Rscript "'analysis with spaces.R'"
 
 Inputs and outputs:
-  Supply local matrices, 10x MEX/HDF5, RDS or BPCells paths in your script.
+  Supply local matrices, 10x MEX/HDF5, RDS, BPCells paths or an Atera directory.
+  In your R script: library(Seurat); obj <- LoadAtera("my-run")
+  For an image: m <- ReadAtera("my-run", outs="morphology", morphology.channel="dapi")$morphology
+  m$image contains pixels indexed [x,y]. The reader is bundled; no Java download.
   Write RDS/TSV/PNG/PDF/HTML in a writable project directory; /tmp is temporary.
 
 Choose a backend:
   TAFFISH_CONTAINER_BACKEND=docker taf-seurat Rscript analysis.R
   TAFFISH_CONTAINER_BACKEND=podman taf-seurat Rscript analysis.R
   TAFFISH_CONTAINER_BACKEND=apptainer taf-seurat Rscript analysis.R
-  Native platform: amd64 Linux. Docker/Podman select amd64 automatically;
-  an arm64 host needs engine-provided emulation. Apptainer needs amd64 Linux.
+  Native platform: amd64 Linux. Docker/Podman on other CPUs require emulation.
 
 Export a standalone interactive plot:
   Save hover.R containing these R lines:
@@ -53,7 +55,6 @@ Reuse prepared resources:
   TAFFISH_CONTAINER_BACKEND=docker TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_DOCKER_RUN_ARGS="-v $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
   TAFFISH_CONTAINER_BACKEND=podman TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_PODMAN_RUN_ARGS="-v $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
   TAFFISH_CONTAINER_BACKEND=apptainer TAFFISH_SEURAT_RESOURCE_AUTO_MOUNT=0 TAFFISH_APPTAINER_RUN_ARGS="--bind $SEURAT_RESOURCES:/opt/taffish-resources/seurat:ro" taf-seurat Rscript use-data.R
-  See README for administrator-once installation and ordinary-user reuse.
   No dataset or model is downloaded during normal startup.
 
 Open an upstream browser gadget:
@@ -75,8 +76,7 @@ Open an upstream browser gadget:
   Startup prints a private temporary log path; errors include its log tail.
 
 Immediate notes:
-  Trusted R scripts only; default R uwot UMAP and Rtsne need no Python.
-  Python UMAP/densMAP, FIt-SNE, Signac and Azimuth are not bundled.
+  Trusted R scripts only. Default UMAP uses R uwot; optional Python UMAP is not bundled.
   Resource list explains member limits. Limit CPU with Seurat setThreads(1).
 
 More help:

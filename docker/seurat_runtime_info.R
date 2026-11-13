@@ -7,7 +7,7 @@ if (length(args) > 1L || (length(args) == 1L && !args %in% c("-h", "--help", "-v
 }
 
 if (any(args %in% c("-h", "--help"))) {
-  cat("seurat-runtime-info 5.6.0-r1\n")
+  cat("seurat-runtime-info 6.0.0-r1\n")
   cat("\n")
   cat("Print bundled R, Seurat, SeuratObject, and selected runtime package versions.\n")
   cat("\n")
@@ -17,7 +17,7 @@ if (any(args %in% c("-h", "--help"))) {
 }
 
 if (any(args %in% c("-v", "--version"))) {
-  cat("seurat-runtime-info 5.6.0-r1\n")
+  cat("seurat-runtime-info 6.0.0-r1\n")
   quit(status = 0)
 }
 
@@ -54,6 +54,8 @@ rows <- data.frame(
     "leidenbase",
     "Signac",
     "Azimuth",
+    "RBioFormats",
+    "Bio-Formats",
     "SeuratData"
   ),
   version = c(
@@ -80,6 +82,8 @@ rows <- data.frame(
     pkg_version("leidenbase"),
     pkg_version("Signac"),
     pkg_version("Azimuth"),
+    pkg_version("RBioFormats"),
+    as.character(RBioFormats::BioFormats.version()),
     pkg_version("SeuratData")
   )
 )

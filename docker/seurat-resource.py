@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -31,6 +32,31 @@ if not CATALOG_PATH.is_file():
 
 class ResourceError(Exception):
     pass
+
+
+_STOP = {signal.SIGINT, signal.SIGTERM, signal.SIGHUP}
+
+
+@contextlib.contextmanager
+def finish_step():
+    """Do not interrupt the bookkeeping for an acquired path or an atomic commit."""
+    previous = signal.pthread_sigmask(signal.SIG_BLOCK, _STOP)
+    try:
+        yield
+    finally:
+        signal.pthread_sigmask(signal.SIG_SETMASK, previous)
+
+
+@contextlib.contextmanager
+def handle_stop():
+    def stop(signum, _frame):
+        raise SystemExit(128 + signum)
+    previous = {s: signal.signal(s, stop) for s in _STOP}
+    try:
+        yield
+    finally:
+        for s, handler in previous.items():
+            signal.signal(s, handler)
 
 
 def digest(path, algorithm="sha256"):
@@ -216,8 +242,9 @@ def available_space(directory, required):
 @contextlib.contextmanager
 def install_lock(root):
     root.mkdir(parents=True, exist_ok=True)
-    if not root.is_dir():
-        raise ResourceError("resource root is not a directory")
+    st = root.stat()
+    if not root.is_dir() or st.st_uid != os.getuid() or st.st_mode & 0o022:
+        raise ResourceError("writable resource root must be a dedicated installer-owned directory, not group/world writable")
     path = root / ".install.lock"
     fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
@@ -260,7 +287,7 @@ def download(member, cache, force=False, opener=urllib.request.urlopen):
             os.replace(partial, completed)
             return completed
         offset = partial.stat().st_size if partial.exists() else 0
-        request = urllib.request.Request(member["url"], headers={"User-Agent": "TAFFISH-Seurat-resource/5.6.0", **({"Range": f"bytes={offset}-"} if offset else {})})
+        request = urllib.request.Request(member["url"], headers={"User-Agent": "TAFFISH-Seurat-resource/6.0.0", **({"Range": f"bytes={offset}-"} if offset else {})})
         try:
             with opener(request, timeout=60) as response:
                 if not response.geturl().startswith("https://seurat.nygenome.org/src/contrib/"):
@@ -331,7 +358,10 @@ def normalize_permissions(tree):
 def install(root, members, catalog, force=False, downloader=download, installer=r_install):
     # 必须在resolve/mkdir/cache/lock/download之前执行，失败不能留下似已安装的目录。
     assert_installable(members)
-    root = root.expanduser().resolve()
+    root = root.expanduser()
+    if any(p.is_symlink() and not p.exists() for p in (root, *root.parents)):
+        raise ResourceError("resource install root contains a broken symlink")
+    root = root.resolve()
     if root == Path("/") or root == Path.home():
         raise ResourceError("use a dedicated resource root, not / or the home directory")
     original_umask = os.umask(0o022)
@@ -366,7 +396,11 @@ def install(root, members, catalog, force=False, downloader=download, installer=
             if revisions.is_symlink():
                 raise ResourceError("resource snapshots directory must not be a symlink")
             revisions.mkdir(mode=0o755, exist_ok=True)
-            stage = Path(tempfile.mkdtemp(prefix=".staging-", dir=revisions))
+            st = revisions.stat()
+            if not revisions.is_dir() or st.st_uid != os.getuid() or st.st_mode & 0o022:
+                raise ResourceError("snapshots must be a directory writable only by the installer")
+            with finish_step():
+                stage = Path(tempfile.mkdtemp(prefix=".staging-", dir=revisions))
             library = stage / "library"
             if snapshot:
                 size = sum(x["bytes"] for x in receipt["inventory"].values())
@@ -401,21 +435,26 @@ def install(root, members, catalog, force=False, downloader=download, installer=
             os.chmod(stage / "manifest.json", 0o644)
             verify_snapshot(stage, catalog)
             final = revisions / uuid.uuid4().hex
-            os.rename(stage, final)
-            stage = None
-            new_link = root / (".current-" + uuid.uuid4().hex)
-            new_link.symlink_to(final.relative_to(root))
-            os.replace(new_link, root / "current")
-            new_link = None
+            with finish_step():
+                # Never clean a proposed name unless this transaction actually acquired it.
+                candidate_link = root / (".current-" + uuid.uuid4().hex)
+                candidate_link.symlink_to(final.relative_to(root))
+                new_link = candidate_link
+                os.rename(stage, final)
+                stage = final
+                os.replace(new_link, root / "current")
+                new_link = None
+                stage = None
             verified, _ = verify(root, catalog)
             print(f"Resource installation complete: {verified}")
             return verified
     finally:
-        if new_link is not None and new_link.is_symlink():
-            new_link.unlink()
-        if stage is not None and stage.is_dir():
-            shutil.rmtree(stage)
-        os.umask(original_umask)
+        with finish_step():
+            if new_link is not None:
+                new_link.unlink(missing_ok=True)
+            if stage is not None and stage.is_dir() and not stage.is_symlink():
+                shutil.rmtree(stage)
+            os.umask(original_umask)
 
 
 def main(argv=None):
@@ -452,7 +491,8 @@ def main(argv=None):
                 print(json.dumps(plan, indent=2))
             else:
                 print(f"Persistent resource destination: {args.resource_root}. In a container, use an actual writable host bind.", file=sys.stderr)
-                install(args.resource_root, members, catalog, force=args.force)
+                with handle_stop():
+                    install(args.resource_root, members, catalog, force=args.force)
         else:
             if args.dataset or args.force:
                 parser.error("clear-cache does not accept --dataset/--force")

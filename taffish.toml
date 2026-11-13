@@ -1,7 +1,7 @@
 [package]
 name = "seurat"
 kind = "tool"
-version = "5.6.0"
+version = "6.0.0"
 release = 1
 license = "Apache-2.0"
 main = "src/main.taf"
@@ -17,7 +17,7 @@ pipe = true
 command_mode = true
 
 [container]
-image = "ghcr.io/taffish/seurat:5.6.0-r1"
+image = "ghcr.io/taffish/seurat:6.0.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64"
 
@@ -25,7 +25,7 @@ build_platforms = "linux/amd64"
 domain = "bio"
 categories = ["single-cell", "scRNA-seq", "R", "Seurat", "visualization"]
 keywords = ["Seurat", "single-cell", "scRNA-seq", "R", "SeuratObject", "UMAP", "PCA", "clustering", "markers", "Shiny"]
-description = "Source-built Seurat 5.6.0 R runtime with threaded analysis, BPCells, plotting, browser gadgets and explicitly prepared shared SeuratData resources."
+description = "Seurat 6 R runtime for single-cell and spatial analysis, offline Atera morphology, Shiny gadgets and explicitly prepared shared SeuratData resources."
 
 [upstream]
 name = "Seurat"
@@ -33,9 +33,9 @@ type = "github"
 repo = "satijalab/seurat"
 homepage = "https://satijalab.org/seurat/"
 repository = "https://github.com/satijalab/seurat"
-release_url = "https://github.com/satijalab/seurat/releases/tag/v5.6.0"
-downloads = "https://cran.r-project.org/src/contrib/Seurat_5.6.0.tar.gz"
-version = "5.6.0"
+release_url = "https://github.com/satijalab/seurat/releases/tag/v6.0.0"
+downloads = "https://cran.r-project.org/src/contrib/Seurat_6.0.0.tar.gz"
+version = "6.0.0"
 license = "MIT + file LICENSE"
 citation = "Hao et al. Dictionary learning for integrative, multimodal and scalable single-cell analysis. Nature Biotechnology (2023) [Seurat v5]."
 doi = "10.1038/s41587-023-01767-y"
@@ -46,4 +46,4 @@ strip_prefix = "v"
 backend = "docker"
 timeout = 600
 exist = ["R", "Rscript", "seurat-runtime-info", "seurat-check", "seurat-resource", "seurat-gadget", "python3", "bash", "sh", "pandoc"]
-test = ["seurat-check identity", "seurat-check modules", "seurat-check workflow", "seurat-check threading", "seurat-check sct", "seurat-check bpcells", "seurat-check io", "seurat-check static", "seurat-check negative", "Rscript --help && Rscript --version && seurat-runtime-info --help && seurat-check --help && seurat-resource --help && seurat-gadget --help", "python3 /opt/seurat/seurat_resource_smoke.py", "python3 /opt/seurat/seurat_gadget_smoke.py help", "python3 /opt/seurat/seurat_gadget_smoke.py missing", "python3 /opt/seurat/seurat_gadget_smoke.py ready-term", "python3 /opt/seurat/seurat_gadget_smoke.py ready-int", "python3 /opt/seurat/seurat_gadget_smoke.py startup-int", "python3 /opt/seurat/seurat_gadget_smoke.py startup-term", "python3 /opt/seurat/seurat_gadget_smoke.py failure", "python3 /opt/seurat/seurat_gadget_smoke.py timeout", "python3 /opt/seurat/seurat_gadget_smoke.py occupied"]
+test = ["seurat-check identity", "seurat-check modules", "seurat-check workflow", "seurat-check threading", "seurat-check sct", "seurat-check bpcells", "seurat-check io", "seurat-check static", "Rscript --vanilla /opt/seurat/share/testdata/seurat-v6.R", "Rscript --vanilla /opt/seurat/share/testdata/atera-counts.R /opt/seurat/share/testdata/atera", "Rscript --vanilla /opt/seurat/share/testdata/atera-morphology.R", "seurat-check negative", "Rscript --help && Rscript --version && seurat-runtime-info --help && seurat-check --help && seurat-resource --help && seurat-gadget --help", "python3 /opt/seurat/seurat_resource_smoke.py", "python3 /opt/seurat/seurat_gadget_smoke.py help", "python3 /opt/seurat/seurat_gadget_smoke.py missing", "python3 /opt/seurat/seurat_gadget_smoke.py ready-term", "python3 /opt/seurat/seurat_gadget_smoke.py ready-int", "python3 /opt/seurat/seurat_gadget_smoke.py startup-int", "python3 /opt/seurat/seurat_gadget_smoke.py startup-term", "python3 /opt/seurat/seurat_gadget_smoke.py failure", "python3 /opt/seurat/seurat_gadget_smoke.py timeout", "python3 /opt/seurat/seurat_gadget_smoke.py occupied"]

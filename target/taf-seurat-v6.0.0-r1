@@ -1,0 +1,107 @@
+#!/bin/sh
+
+set -u
+
+script_dir=$(CDPATH= cd "$(dirname "$0")" && pwd) || exit 1
+snapshot_root="$script_dir/.taf-seurat-v6.0.0-r1"
+taf_main="$snapshot_root/src/main.taf"
+taf_help="$snapshot_root/docs/help.md"
+taffish_bin="${TAFFISH:-taffish}"
+taf_history_mode="${TAF_HISTORY_MODE:-async}"
+taf_history_home="${TAFFISH_USER_HOME:-${HOME:-}/.local/share/taffish}"
+taf_history_file="${TAF_HISTORY_FILE:-$taf_history_home/logs/history.jsonl}"
+
+artifact_name='taf-seurat-v6.0.0-r1'
+project_name='seurat'
+project_kind='TOOL'
+project_version='6.0.0'
+project_release='1'
+project_command='taf-seurat'
+project_repository_url='https://github.com/taffish/seurat'
+project_container_image='ghcr.io/taffish/seurat:6.0.0-r1'
+taf_launcher_name="${TAF_LAUNCHER_NAME:-$artifact_name}"
+taf_launcher_artifact="${TAF_LAUNCHER_ARTIFACT:-$artifact_name}"
+
+taf_record_history_call() {
+    taf_status="$1"
+    taf_exit="$2"
+    taf_stage="$3"
+    shift 3
+
+    # NUL-delimited fields keep empty arguments, quotes, and newlines intact.
+    printf '%s\000' "$$" "$(pwd)" "$artifact_name" "$project_name" "$project_kind" \
+        "$project_version" "$project_release" "$project_command" "$snapshot_root" \
+        "$taf_main" "$project_repository_url" "$project_container_image" \
+        "$taf_status" "$taf_exit" "$taf_stage" "$#" "$@" |
+        TAFFISH_INTERNAL_HISTORY_FILE="$taf_history_file" \
+        "$taffish_bin" --taffish-wrapper-history || :
+}
+
+taf_record_history() {
+    if [ "$taf_history_mode" = "off" ] || [ "$taf_history_mode" = "0" ]; then
+        return 0
+    fi
+    if [ "$taf_history_mode" = "sync" ]; then
+        taf_record_history_call "$@" </dev/null >/dev/null 2>&1
+    else
+        (
+            # Redirect the subshell itself: dash saves fds for function-local redirections.
+            exec </dev/null >/dev/null 2>&1
+            taf_record_history_call "$@"
+        ) &
+    fi
+}
+
+if [ "${1:-}" = "--" ]; then
+    shift
+elif [ "${1:-}" = "-v" ] || [ "${1:-}" = "--version" ]; then
+    if [ "$taf_launcher_name" != "$taf_launcher_artifact" ]; then
+        printf '%s -> %s\n' "$taf_launcher_name" "$taf_launcher_artifact"
+    else
+        printf '%s\n' "$taf_launcher_artifact"
+    fi
+    printf 'package: %s\n' "$project_name"
+    printf 'version: %s-r%s\n' "$project_version" "$project_release"
+    printf 'kind: %s\n' "$project_kind"
+    printf 'repository: %s\n' "$project_repository_url"
+    exit 0
+elif [ "${1:-}" = "--compile" ]; then
+    shift
+    exec "$taffish_bin" "$taf_main" "$@"
+elif [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    if [ -f "$taf_help" ]; then
+        cat "$taf_help"
+        exit 0
+    fi
+    echo "help file not found: $taf_help" >&2
+    exit 1
+fi
+
+taf_tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/taffish.XXXXXX") || exit 1
+trap 'rm -rf "$taf_tmpdir"' EXIT INT TERM HUP
+
+taf_shell="$taf_tmpdir/taf.sh"
+"$taffish_bin" "$taf_main" "$@" > "$taf_shell"
+taf_exit=$?
+if [ "$taf_exit" -ne 0 ]; then
+    taf_record_history failure "$taf_exit" compile "$@"
+    exit "$taf_exit"
+fi
+
+chmod +x "$taf_shell"
+taf_exit=$?
+if [ "$taf_exit" -ne 0 ]; then
+    taf_record_history failure "$taf_exit" chmod "$@"
+    exit "$taf_exit"
+fi
+
+"$taf_shell"
+taf_exit=$?
+
+if [ "$taf_exit" -eq 0 ]; then
+    taf_record_history success "$taf_exit" run "$@"
+else
+    taf_record_history failure "$taf_exit" run "$@"
+fi
+
+exit "$taf_exit"

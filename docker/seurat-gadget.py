@@ -17,7 +17,7 @@ import urllib.error
 import urllib.request
 
 
-VERSION = "5.6.0-r1"
+VERSION = "6.0.0-r1"
 SERVER = Path("/opt/seurat/seurat_gadget_server.R")
 
 

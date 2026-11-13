@@ -1,14 +1,14 @@
 # seurat
 
-`seurat` packages [Seurat](https://satijalab.org/seurat/) 5.6.0 for TAFFISH:
+`seurat` packages [Seurat](https://satijalab.org/seurat/) 6.0.0 for TAFFISH:
 an R runtime for single-cell analysis, with upstream browser gadgets and
 explicitly installed, reusable SeuratData datasets.
 
 Package identity:
 
 - name: `seurat`; command: `taf-seurat`; kind: `tool`
-- TAFFISH version: `5.6.0-r1`
-- image: `ghcr.io/taffish/seurat:5.6.0-r1`
+- TAFFISH version: `6.0.0-r1`
+- image: `ghcr.io/taffish/seurat:6.0.0-r1`
 - default command: `Rscript`; automatic command mode: enabled
 - native platform: `linux/amd64`
 - packaging license: Apache-2.0; upstream Seurat: MIT + file LICENSE
@@ -20,13 +20,10 @@ analysis pipeline. Your script chooses the input, parameters and outputs.
 It includes a foreground launcher for Seurat's own Shiny gadgets; RStudio
 Server is neither needed nor included.
 
-[Seurat 5.6.0](https://github.com/satijalab/seurat/releases/tag/v5.6.0)
-expands C++ threading, exposed through `setThreads()` and `getThreads()`,
-across normalization, variable-feature selection, scaling, PCA, neighbor and
-clustering paths. It also fixes several BPCells, SCT residual and plotting
-paths. This package does not change those scientific implementations or
-promise identical floating-point results across thread counts, architectures
-or older upstream versions.
+[Seurat 6.0.0](https://github.com/satijalab/seurat/releases/tag/v6.0.0)
+adds scSLIDE-related methods and 10x Atera spatial input. Existing R scripts
+can still use the RNA, SCT, BPCells and plotting entrypoints below. The
+major version changes upstream APIs; record the Seurat version with outputs.
 
 ## Scope
 
@@ -44,42 +41,48 @@ catalog membership does not supply every associated analysis dependency.
 
 ## Container Contents and Source Provenance
 
-This release uses a minimal source overlay instead of waiting for an official
-Seurat 5.6.0 image. It retains the R package library from the immutable official
-5.5.1 image, then compiles unmodified CRAN Seurat 5.6.0 and the newly required
-RcppThread dependency. Other R packages are not broadly upgraded: existing
-`uwot` 0.2.4 already satisfies Seurat 5.6.0.
+The package takes the unmodified Seurat package and its R dependency closure
+from the official native amd64 image. It does not ship its RStudio server or a
+second full R installation.
 
-| Component | Fixed source or runtime identity |
+| Component | Source or identity |
 | --- | --- |
-| Official R library baseline | `satijalab/seurat:5.5.1@sha256:048d965487afc2961c450879692281a73e24f6de47360ed2f11b31112ebd844e` |
-| Runtime base | `rocker/r-ver:4.5.2@sha256:fd4ccdd3a4a6f7ef805e2daeee2a0fe3bf126bc231f36351223baecf5a595a4c` |
-| R / SeuratObject | 4.5.2 / 5.4.0 |
-| Seurat source | `Seurat_5.6.0.tar.gz`; SHA256 `8366190e8fe26e79efc18be5391308ff00cde673d298bc7b39e7a84816718f39` |
-| RcppThread source | `RcppThread_2.4.0.tar.gz`; SHA256 `29e8955a0e1cad0775bcb6f29bde76f34cc2e1fa9c5f5d5d8d4962b91c3feaeb` |
-| Preserved numerical dependencies | `uwot` 0.2.4; `RSpectra` 0.16.2 |
+| Official Seurat library | `satijalab/seurat:6.0.0@sha256:9cd7b1ae30adb89f5879c8cf36b6d3a2aa3586bdee81280edabb9349815960f7` |
+| Runtime | `rocker/r-ver:4.6.1@sha256:780bc87219250a6dfffef6c812999731986fd94d8d5f7e572d1157c923d1b4bb`; R 4.6.1, SeuratObject 5.4.0, uwot 0.2.5 |
+| Atera R bridge | [Bioconductor RBioFormats 1.12.0](https://bioconductor.org/packages/3.23/bioc/html/RBioFormats.html), GPL-3; source SHA256 `1f500fae0c0dc15e3b38d6a48ddea1868248e6685b9e21967fee6a313f6a961f` |
+| Java reader | [OME Bio-Formats 8.5.0](https://downloads.openmicroscopy.org/bio-formats/8.5.0/), official GPL distribution; JAR SHA256 `c6e60665d53a334b66e4d635340151f403dfe57a64704c573dd4c03b873befb9` |
 
-The source downloads use CRAN's versioned source paths and Archive fallback
-with the same mandatory SHA256 checks. The build verifies the old library's
-R/package identities first. Retaining R 4.5.2 preserves the baseline ABI;
-this does not make arbitrary R-version libraries interchangeable. No upstream
-scientific source or license text is patched.
+[The downstream loader patch](docker/rbioformats-offline.patch) changes the
+version declaration and JAR lookup only. Instead of downloading 7.3.0 into
+each user's cache, the bridge reads the fixed 8.5.0 JAR from the image and
+fails if missing. The actual reader, pixel decoding and Seurat algorithms are
+not patched. The upstream JAR retains its internal notices; corresponding
+[OME sources](https://github.com/ome/bioformats/tree/v8.5.0), patched RBioFormats
+source and the applied diff are identifiable from the image provenance.
+Ubuntu packages are resolved from live Noble mirrors; a digest or source hash
+guarantees identity, not continued availability of upstream packages.
+The native amd64 runtime is 3,334,390,588 bytes (3.11 GiB by Docker inspect);
+the compressed Apptainer SIF is 1,135,435,776 bytes (1.06 GiB). These measurements
+include Java and the bundled reader, not separately installed SeuratData packages.
+Use the packaged runtime for analysis, not for compiling additional R packages.
 
-Base images, source archives and the retained R library are fixed as above.
-Ubuntu runtime packages are resolved from the distribution repository during
-the build and inventoried; they are not all individually version-pinned.
+### Local Atera morphology
 
-Compiler dependencies stay in the build stage. Build-only R package headers
-are removed after compilation and their removal is inventoried; R help,
-vignettes, runtime data, JavaScript assets and fonts are retained. This is a
-runtime image, not a development environment for compiling new R extensions.
-Any dependency extension requires a separately built, validated image.
+Use `LoadAtera("my-run")` for counts and coordinates. For a separately
+requested channel in `morphology_2d/chNNNN_<channel>.ome.tif`:
 
-The final native amd64 candidate's Docker inspect size is 3,058,921,212 bytes
-(about 2.849 GiB); the corresponding compressed SIF is 1,103,884,288 bytes
-(about 1.028 GiB). These include the retained broad upstream R library, not
-downloaded SeuratData datasets. Size/history and the installed tree were
-inspected after cleanup; runtime data, plotting assets and licenses remain.
+```r
+library(Seurat)
+m <- ReadAtera("my-run", outs = "morphology", morphology.channel = "dapi",
+               morphology.resolution = 1L, morphology.region = list(x=c(2,4), y=c(1,2.5)))$morphology
+dim(m$image)       # [x, y]; region limits and origin are in microns
+m$pixel.size
+```
+
+Resolution 1 is full resolution; without a level, Seurat chooses the smallest
+overview. Cropping in microns needs `pixel_size` in `experiment.spatial`.
+Give large slides a bounded region and sufficient memory. This is an offline
+file reader, not an image viewer/server or a claim for every Bio-Formats format.
 
 Packaged commands and paths:
 
@@ -87,7 +90,7 @@ Packaged commands and paths:
 - `seurat-resource`: selected fixed dataset installation and verification.
 - `seurat-gadget`: foreground supervisor for a trusted upstream gadget script.
 - `seurat-check`: independent offline packaging checks, not an analysis pipeline.
-- `/opt/seurat/share/provenance/`: source checksums/URLs, before/after R package
+- `/opt/seurat/share/provenance/`: source checksums/URLs, selected R package
   inventories, runtime system packages and build-only header removal inventory.
 - `/opt/seurat/share/testdata/`: synthetic smoke scripts.
 - `/opt/seurat/resource-catalog/`: frozen SeuratData metadata, not datasets.
@@ -174,11 +177,10 @@ TAFFISH_CONTAINER_BACKEND=apptainer taf-seurat Rscript analysis.R
 
 | Capability | Docker | Podman | Apptainer | Boundary |
 | --- | --- | --- | --- | --- |
-| CLI and static plots | Wrapper selects amd64 | Wrapper selects amd64 | Native amd64 Linux | Native amd64 wrapper and persistent outputs validated on all three; maintainer confirmed local HTML rendering, hover and toolbar |
+| CLI and static plots | Wrapper selects amd64 | Wrapper selects amd64 | Native amd64 Linux | Script output persists in the project directory; open standalone HTML in a browser |
 | Prepared resources | Automatic read-only volume | Automatic read-only volume | Automatic read-only bind | Same fixed inventory; installation is separate |
 | Resource installation | Existing host root mounted at `/resource-install` read-write | Same, with user namespace mapping | Existing host root bound read-write | Explicit helper operation, not normal analysis |
 | Browser gadget | Loopback host publication; container binds `0.0.0.0` | Same | Shared-network loopback; no port mapping | Commands below; no authentication/TLS |
-| Native arm64 | Not provided | Not provided | Not provided | The retained official binary library is amd64 |
 
 Docker/Podman on arm64 hosts require working amd64 emulation supplied by the
 host engine. This is not native `linux/arm64`, and performance depends on that
@@ -324,11 +326,7 @@ previews owned download-cache cleanup; omit `--dry-run` to perform it.
 Installed and previous snapshots are not removed by cache cleanup. Retained
 snapshots require deliberate administrator lifecycle management.
 
-Choose species, tissue, modality and version explicitly. Complete-member
-installation/loading and read-only sharing passed for `pbmc3k@3.1.4` on
-all three backends, within the sharing-mechanism boundaries detailed under
-Testing. No full-family validation or actual system-directory deployment is
-claimed.
+Choose species, tissue, modality and version explicitly. A representative installation is not full-family scientific validation or a system-directory deployment.
 
 ## Browser Gadgets
 
@@ -377,12 +375,9 @@ It supervises the child, bounds startup, reports failure logs and cleans up
 owned processes on Ctrl-C/TERM. Logs are private temporary files, not default
 host outputs; capture terminal output if it must persist. Run only scripts
 you trust. There is no authentication/TLS: never expose the service publicly.
-The final native amd64 candidate passed real-wrapper lifecycle and browser
-interaction checks on all three backends: feature changes, Done completion,
-PNG/RDS output, early/ready Ctrl-C, TERM and owned-process cleanup. Apptainer
-TERM was tested through its non-TTY attached runtime client; interactive
-terminal shutdown uses Ctrl-C. Sending TERM only to a foreground TTY
-Apptainer client is not the same signal-forwarding contract.
+Stop the attached service with Ctrl-C. For Apptainer, a TERM sent only to an
+outer foreground terminal client is not equivalent to interrupting the attached
+session.
 
 ### Development entrypoint
 
@@ -393,11 +388,8 @@ For a short standalone HTML export, save the `hover.R` example from
 taf run -b docker -- Rscript hover.R
 ```
 
-This short generator passed on native amd64 Linux with the candidate image,
-network disabled and a read-only container root; `hover.html` persists in
-the working directory. Podman/Apptainer short `taf run` invocations were not
-separately validated; installed/generated-wrapper HTML export passed on all
-three backends. This is distinct from the long-running service below.
+This one-shot command writes a standalone file. The long-running browser
+gadget has a different lifecycle.
 
 With TAFFISH 0.11.0, `taf run` buffers the long-running GUI's output instead
 of reliably showing the startup card immediately. It is not a supported
@@ -406,9 +398,9 @@ build first and use the generated wrapper (with `gadget.R` in that directory):
 
 ```sh
 taf build
-TAFFISH_CONTAINER_BACKEND=docker TAFFISH_DOCKER_RUN_ARGS='-p 127.0.0.1:8787:8787' target/taf-seurat-v5.6.0-r1 seurat-gadget --script gadget.R --bind 0.0.0.0
-TAFFISH_CONTAINER_BACKEND=podman TAFFISH_PODMAN_RUN_ARGS='-p 127.0.0.1:8787:8787' target/taf-seurat-v5.6.0-r1 seurat-gadget --script gadget.R --bind 0.0.0.0
-TAFFISH_CONTAINER_BACKEND=apptainer target/taf-seurat-v5.6.0-r1 seurat-gadget --script gadget.R --bind 127.0.0.1 --port 8787
+TAFFISH_CONTAINER_BACKEND=docker TAFFISH_DOCKER_RUN_ARGS='-p 127.0.0.1:8787:8787' target/taf-seurat-v6.0.0-r1 seurat-gadget --script gadget.R --bind 0.0.0.0
+TAFFISH_CONTAINER_BACKEND=podman TAFFISH_PODMAN_RUN_ARGS='-p 127.0.0.1:8787:8787' target/taf-seurat-v6.0.0-r1 seurat-gadget --script gadget.R --bind 0.0.0.0
+TAFFISH_CONTAINER_BACKEND=apptainer target/taf-seurat-v6.0.0-r1 seurat-gadget --script gadget.R --bind 127.0.0.1 --port 8787
 ```
 
 The same localhost/SSH and trusted-script rules apply. This frontend boundary
@@ -455,69 +447,24 @@ shell PID is not a supported service-manager stop contract.
 
 ## Testing
 
-The final 5.6.0-r1 source candidate was built from the app-root context on
-native amd64 Linux and tested on Docker 26.1.5, Podman 5.4.2 and Apptainer
-1.5.3. The automated packaging checks below passed. On 2026-10-04 the
-maintainer also confirmed local-file HTML rendering, hover and toolbar
-behavior. The short-running Docker `taf run` HTML generator and the updated
-wrapper help/version/compile checks also passed. This is not a publication
-claim or a claim of full scientific validation.
-
-- Build-time version/import/tiny normalization only; full plotting/GUI is
-  runtime validation, not a strict image-build assertion.
-- Independent offline identity/modules, workflow, threading, SCT/PCA,
-  BPCells, plain/gzip MEX/HDF5, standalone HoverLocator HTML and negative checks.
-- Fresh direct manifest probes on Docker/Podman read-only roots and a real
-  read-only Apptainer SIF, without production binds or wrapper substitution.
-- Real generated-wrapper metadata/command/argument checks, immutable inputs
-  and actual-bind persistent PNG/PDF/RDS/TSV/HTML outputs.
-- Resource install/inventory/negative cases, selected complete-member loading
-  and ordinary-user read-only sharing.
-- Real upstream gadget/browser interaction and startup/ready Ctrl-C/TERM,
-  failure, timeout and occupied-port cases on the relevant backends.
-- Final root-context native amd64 build, dependency closure, image size
-  profile, canonical Action identity, dry-run and final target cleanup.
-
-The exact manifest matrix passed 155 fresh/offline probes: 31 each on Docker
-normal/read-only, Podman normal/read-only and a real read-only SIF built from
-the same OCI candidate. All three generated-wrapper suites passed 17 core
-checks each. Dynamic-library auditing covered 241 ELF files; RcppParallel's
-private loader path was verified in a fresh R process rather than mistaken
-for a missing system library.
-
-The full selected `pbmc3k@3.1.4` member was installed through each real
-wrapper's writable host bind, reinstalled idempotently, verified and loaded
-read-only. Docker/Podman additionally loaded it as a distinct container UID
-65534 without accessing the installer's private cache/lock. Apptainer used
-the real ordinary host user. These are sharing-mechanism tests, not a claim
-that `/usr/local/share` was provisioned on the test server or that every
-catalog member has been scientifically validated.
-
-The fixed SeuratData catalog preserves each Description metadata field on a
-logical line. R always reads catalog metadata from the image and dataset
-libraries from the verified prepared root; old prepared data can be reused
-without rewriting it merely to repair metadata formatting.
-
-Native arm64 is not declared; amd64 emulation is a separate evidence axis.
-No backend exception is claimed here. The standalone HoverLocator HTML was
-generated through all three wrappers; structural checks found embedded
-runtime assets and no external runtime tag references. The automation
-browser could not open local `file://` URLs, so local-file rendering, hover
-and toolbar acceptance comes from the maintainer's 2026-10-04 confirmation.
-That confirmation does not claim a disconnected-network reload or automated
-browser console/network capture. Packaging tests do not replace production
-scientific validation or user confirmation of new interactive results.
+`seurat-check all` runs independent checks of the R runtime, tiny analysis,
+threading, SCT, file IO, BPCells and standalone plotting. The manifest adds
+scSLIDE methods, Atera counts/coordinates, lossless 8/16-bit JPEG2000 OME-TIFF
+pyramids (every pixel in two channels/resolutions, crop and missing channel),
+resource and GUI lifecycle tests. Full tests run outside Docker build; the
+build itself checks identity/import and a tiny normalization only. These are
+packaging checks, not scientific validation of a dataset.
 
 ## License and Citation
 
 TAFFISH packaging/helpers: Apache-2.0. Seurat: MIT + file LICENSE. R, bundled
 R/system packages and datasets keep their respective licenses; inventories
-record package license metadata. RcppThread uses original CRAN source with
+record package license metadata. RcppThread is retained from the fixed official library with
 its license intact. Fixed-catalog datasets are CC BY 4.0 and require their
 own attribution; no upstream scientific source or license text is patched.
 
-For Seurat v5 cite Hao et al., *Dictionary learning for integrative,
+Use `citation("Seurat")` in the running version. For the v5 methods cite Hao et al., *Dictionary learning for integrative,
 multimodal and scalable single-cell analysis*, Nature Biotechnology (2023),
 [DOI: 10.1038/s41587-023-01767-y](https://doi.org/10.1038/s41587-023-01767-y).
-See [official installation guidance](https://satijalab.org/seurat/articles/install_v5.html)
+See [official installation guidance](https://satijalab.org/seurat/)
 and method-specific upstream citation guidance for additional methods.

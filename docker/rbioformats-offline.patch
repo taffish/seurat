@@ -1,0 +1,77 @@
+--- a/DESCRIPTION
++++ b/DESCRIPTION
+@@ -1,5 +1,6 @@
+ Package: RBioFormats
+ Version: 1.12.0
+-BioFormats: 7.3.0
++BioFormats: 8.5.0
++TAFFISH-Reader: fixed offline OME Bio-Formats 8.5.0; downstream loader adaptation
+ Title: R interface to Bio-Formats
+ Description: An R package which interfaces the OME Bio-Formats Java library to
+--- a/R/zzz.R
++++ b/R/zzz.R
+@@ -18,51 +18,17 @@
+ 
+   bf_ver <- read.dcf(file.path(pkg_dir, "DESCRIPTION"), "BioFormats")
+-  bf_jar <- .bioformats_jar_dst(bf_ver)
+-
+-  .get_bioformats(bf_ver, bf_jar)
+-
+-  jars =
+-    if (installed)
+-      ""
+-    else
+-      list.files(jar_dir, pattern = ".*\\.jar", full.names = TRUE)
+-
+-  .jpackage(pkg, lib.loc = lib, morePaths = c(jars, bf_jar))
+-
+-  .init_formattools()
+-}
+-
+-.get_bioformats <- function(ver, bf_jar){
+-  bf_url <- .bioformats_jar_url(ver)
+-
+-  if ( !file.exists(bf_jar) ) {
+-    # The default for timing out the file download is 60s
+-    # Temporarily increase it if this is the case
+-    orig_timeout <- getOption("timeout")
+-    options(timeout = max(100, orig_timeout))
+-    tryCatch(utils::download.file(bf_url, bf_jar, mode = "wb", quiet = FALSE),
+-             error = function(e) {
+-               file.remove(bf_jar)
+-               stop(
+-                 "Failed to download Bio-Formats Java library.\n  Check your internet connection and try again. Consider setting the environment variable R_DEFAULT_INTERNET_TIMEOUT to a value higher than 100.",
+-                 call.=FALSE)
+-             },
+-    finally=options(timeout = orig_timeout)
+-    )
+-  }
+-}
+-
+-.bioformats_jar_url <- function (ver) {
+-  url_template <- "https://downloads.openmicroscopy.org/bio-formats/%s/artifacts/%s"
+-  jar <- "bioformats_package.jar"
+-  sprintf(url_template, ver, jar)
+-}
+-
+-.bioformats_jar_dst <- function(ver) {
+-  jar_filename <- sprintf("bioformats_package_%s.jar", ver)
+-  cache_dir <- tools::R_user_dir("RBioFormats", which = "cache")
+-  if (!dir.exists(cache_dir))
+-    dir.create(cache_dir, recursive = TRUE)
+-  file.path(cache_dir, jar_filename)
++  bf_jar <- file.path("/opt/seurat/share/bioformats", sprintf("bioformats_package-%s.jar", bf_ver))
++  if (!file_test("-f", bf_jar) || file.access(bf_jar, 4L) != 0L)
++    stop("The bundled OME Bio-Formats library is missing or unreadable: ", bf_jar, call. = FALSE)
++
++  jars =
++    if (installed)
++      ""
++    else
++      list.files(jar_dir, pattern = ".*\\.jar", full.names = TRUE)
++
++  .jpackage(pkg, lib.loc = lib, morePaths = c(jars, bf_jar))
++
++  .init_formattools()
+ }
+ 

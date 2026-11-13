@@ -1,0 +1,6 @@
+{
+  "artifact": "taf-seurat-v6.0.0-r1",
+  "schema": "taffish.build/v1",
+  "source_sha256": "49021644a9e245c0a1b462052f15b02faa629be7452c4685747a2374f0d97e07",
+  "wrapper_sha256": "ceae54d9b40be84c606f04a398df99023bc7125ffbf00629ceca56ce0e0e5eeb"
+}

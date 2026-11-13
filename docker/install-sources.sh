@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
-# Build-only, fixed upstream source overlay. No scientific source patches.
+# Prepare a minimal runtime from the pinned official R library. Only the
+# RBioFormats loader is adapted; the Seurat package and pixel decoder are unmodified.
 set -euo pipefail
-scratch=$(mktemp -d /tmp/seurat-source-build.XXXXXX)
+provenance=/opt/seurat/share/provenance
+jar_dir=/opt/seurat/share/bioformats
+library=/opt/export/R
+mkdir -p "$provenance" "$jar_dir" "$library"
+scratch=$(mktemp -d /tmp/seurat-reader.XXXXXX)
 trap 'rm -rf -- "$scratch"' EXIT
-mkdir -p /opt/seurat/share/provenance
 cd "$scratch"
-Rscript --vanilla -e 'stopifnot(as.character(getRversion()) == "4.5.2"); stopifnot(as.character(packageVersion("Seurat")) == "5.5.1"); stopifnot(as.character(packageVersion("SeuratObject")) == "5.4.0")'
-Rscript --vanilla -e 'stopifnot(as.character(packageVersion("uwot")) == "0.2.4", as.character(packageVersion("RSpectra")) == "0.16.2")'
-Rscript --vanilla -e 'p <- installed.packages(); write.table(p[,c("Package","Version","Built")], "/opt/seurat/share/provenance/dependencies-before.tsv", sep="\t", row.names=FALSE, quote=FALSE)'
-while read -r checksum archive; do
-    package=${archive%%_*}
-    primary="https://cran.r-project.org/src/contrib/$archive"
-    fallback="https://cran.r-project.org/src/contrib/Archive/$package/$archive"
-    if ! curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 "$primary" -o "$archive"; then
-        curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 "$fallback" -o "$archive"
-    fi
-    printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
-    printf '%s  %s\n' "$checksum" "$archive" >> /opt/seurat/share/provenance/sources.sha256
-    printf '%s\t%s\t%s\n' "$archive" "$primary" "$fallback" >> /opt/seurat/share/provenance/sources.tsv
-    R CMD INSTALL --no-multiarch "$archive"
-done <<'SOURCES'
-29e8955a0e1cad0775bcb6f29bde76f34cc2e1fa9c5f5d5d8d4962b91c3feaeb RcppThread_2.4.0.tar.gz
-8366190e8fe26e79efc18be5391308ff00cde673d298bc7b39e7a84816718f39 Seurat_5.6.0.tar.gz
-SOURCES
-Rscript --vanilla -e 'stopifnot(as.character(packageVersion("Seurat")) == "5.6.0", as.character(packageVersion("uwot")) == "0.2.4", as.character(packageVersion("RcppThread")) == "2.4.0"); p <- installed.packages(); write.table(p[,c("Package","Version","Built","License")], "/opt/seurat/share/provenance/dependencies.tsv", sep="\t", row.names=FALSE, quote=FALSE)'
+fetch() {
+    Rscript --vanilla -e 'a <- commandArgs(TRUE); options(timeout=600L); for (i in 1:3) { result <- try(utils::download.file(a[1],a[2],method="libcurl",mode="wb",quiet=TRUE),silent=TRUE); if (identical(result,0L)) quit(status=0L); Sys.sleep(i) }; stop("cannot fetch fixed upstream artifact")' "$1" "$2"
+    printf '%s  %s\n' "$3" "$2" | sha256sum --check --strict -
+    printf '%s  %s\n' "$3" "${2##*/}" >> "$provenance/sources.sha256"
+    printf '%s\t%s\n' "${2##*/}" "$1" >> "$provenance/sources.tsv"
+}
+# The release URLs can disappear; the hashes fix identity, not availability.
+fetch https://downloads.openmicroscopy.org/bio-formats/8.5.0/artifacts/bioformats_package.jar "$jar_dir/bioformats_package-8.5.0.jar" c6e60665d53a334b66e4d635340151f403dfe57a64704c573dd4c03b873befb9
+fetch https://bioconductor.org/packages/3.23/bioc/src/contrib/RBioFormats_1.12.0.tar.gz RBioFormats_1.12.0.tar.gz 1f500fae0c0dc15e3b38d6a48ddea1868248e6685b9e21967fee6a313f6a961f
+tar -xzf RBioFormats_1.12.0.tar.gz
+patch --batch --fuzz=0 --forward -p1 -d RBioFormats < /tmp/rbioformats-offline.patch
+install -m 644 /tmp/rbioformats-offline.patch "$provenance/"
+# Retain the corresponding patched source and its notices alongside the binary.
+tar -czf "$provenance/RBioFormats_1.12.0-taffish-reader.tar.gz" RBioFormats
+Rscript --vanilla /tmp/select-libraries.R "$scratch/packages" "$provenance/dependencies.tsv"
+while IFS= read -r pkg; do
+    if [[ "$pkg" != RBioFormats ]]; then cp -a "/usr/local/lib/R/site-library/$pkg" "$library/"; fi
+done < "$scratch/packages"
+R CMD INSTALL --no-test-load --library="$library" RBioFormats
+chmod 644 "$jar_dir/bioformats_package-8.5.0.jar"
+find "$library" -mindepth 2 -maxdepth 2 -type d -name include -print > "$provenance/build-only-headers-removed.txt"
+while IFS= read -r headers; do rm -rf -- "$headers"; done < "$provenance/build-only-headers-removed.txt"

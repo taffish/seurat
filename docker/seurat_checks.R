@@ -11,8 +11,8 @@ same_shape <- function(object, expected) {
 }
 
 identity <- function() {
-  check(as.character(getRversion()) == "4.5.2", "unexpected R version")
-  versions <- c(Seurat = "5.6.0", SeuratObject = "5.4.0", uwot = "0.2.4", RcppThread = "2.4.0")
+  check(as.character(getRversion()) == "4.6.1", "unexpected R version")
+  versions <- c(Seurat = "6.0.0", SeuratObject = "5.4.0", uwot = "0.2.5", RcppThread = "2.4.0")
   for (pkg in names(versions)) {
     check(as.character(utils::packageVersion(pkg)) == versions[[pkg]], paste("unexpected version:", pkg))
   }
@@ -43,7 +43,7 @@ must_fail <- function(expr, pattern) {
 if (mode == "identity") {
   identity()
   v <- system2("seurat-runtime-info", "--version", stdout = TRUE, stderr = TRUE)
-  check(is.null(attr(v, "status")) && identical(v, "seurat-runtime-info 5.6.0-r1"), "runtime helper version failed")
+  check(is.null(attr(v, "status")) && identical(v, "seurat-runtime-info 6.0.0-r1"), "runtime helper version failed")
 } else if (mode == "modules") {
   packages <- c("Seurat", "SeuratObject", "Matrix", "ggplot2", "patchwork", "future", "sctransform",
                 "uwot", "RANN", "RcppAnnoy", "RcppHNSW", "RcppThread", "RcppEigen", "RcppProgress",
@@ -73,7 +73,7 @@ if (mode == "identity") {
         "threaded normalization differs beyond tolerance")
   b <- FindVariableFeatures(b, nfeatures = 30L, verbose = FALSE)
   b <- ScaleData(b, verbose = FALSE)
-  # 5.6.0 RunPCA 会静默回退 irlba；单独探测固定版本的新内核，防止误称覆盖。
+  # 6.0.0 RunPCA 会静默回退 irlba；单独探测固定版本的新内核，防止误称覆盖。
   kernel <- getFromNamespace("EigenGramPCA", "Seurat")
   gram <- kernel(as.matrix(LayerData(b, layer = "scale.data")), npcs = 6L,
                  weight_by_var = TRUE, nthreads = 2L)
